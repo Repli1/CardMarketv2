@@ -24,14 +24,33 @@ export function PostScreen() {
   const [cardsToPostByName, setCardsToPostByName] = useState({});
 
   const updateCurrentCards = (byName, byImage) => {
-    setCardsToPostByName(byName);
-    setCardDisplayArray(Object.entries(byImage).map(([key, value]) => ({ key, value })));
-    console.log('Cards rendered as an array (What we pass to the FlatList): ')
-    console.log(cardsToPostByImage);
-    console.log(cardDisplayArray);
-    console.log('Cards dictionary (What we save with the post info): ')
-    console.log(cardsToPostByName);
+    // Remove entries with value 0 from cardsToPostByName
+    const updatedCardsByName = Object.fromEntries(
+      Object.entries(byName).filter(([key, value]) => value !== "0")
+    );
+    setCardsToPostByName(updatedCardsByName);
+  
+    // Remove entries with value 0 from cardsToPostByImage and cardDisplayArray
+    const updatedCardsByImage = {};
+    const updatedCardDisplayArray = [];
+  
+    Object.entries(byImage).forEach(([key, value]) => {
+      if (value !== "0") {
+        updatedCardsByImage[key] = value;
+        updatedCardDisplayArray.push({ key, value });
+      }
+    });
+  
+    setCardsToPostByImage(updatedCardsByImage);
+    setCardDisplayArray(updatedCardDisplayArray);
+  
+    console.log('Cards rendered as an array (What we pass to the FlatList): ');
+    console.log(updatedCardsByImage);
+    console.log(updatedCardDisplayArray);
+    console.log('Cards dictionary (What we save with the post info): ');
+    console.log(updatedCardsByName);
   };
+  
 
   const pickImages = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({

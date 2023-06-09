@@ -6,9 +6,8 @@ export function SingleCardManager({item, handleContentSizeChange, sendData, save
     useEffect(() => {
         sendData(item, cardNumber);
     }, [item, cardNumber]);
-
     return (
-        <View style={styles.container6}>
+        <View style={styles.container6} key={item.name}>
             <View style={styles.container4}>
                 <View style={{ flex: 0.5, backgroundColor: 'red' }}>
                   <Image source={{ uri: item.image }} style={styles.image2}/>

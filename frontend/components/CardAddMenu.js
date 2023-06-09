@@ -65,7 +65,9 @@ export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, 
           showsVerticalScrollIndicator={false}
           data={filteredCards}
           contentContainerStyle={styles.container7}
-          renderItem={renderItem}/>
+          renderItem={renderItem}
+          keyExtractor={(item) => item.name}
+          />
           <View style={{ borderRadius: 25, backgroundColor: '#11A88E', padding: 15, marginTop: 5, width: 150, alignItems: "center" }}>
             <Pressable onPress={closing} style={{  }}>
               <Text>
