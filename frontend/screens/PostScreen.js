@@ -3,18 +3,15 @@ import { CardAddMenu } from "../components/CardAddMenu.js";
 import { PostButton } from "../components/PostButton.js";
 import { SaleAuctionSlider } from "../components/SaleAuctionSlider.js";
 import { useState, useEffect } from "react";
-import SearchBar from "../components/SearchBar";
+import { SearchBar } from "../components/SearchBar";
 import { PrivateValueStore } from "@react-navigation/native";
 import * as ImagePicker from 'expo-image-picker';
 
 export function PostScreen() {
-  const [searchPhrase, setSearchPhrase] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [displayCards, setDisplayCards] = useState([]);
   const [images, setImages] = useState();
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
-  const [currentCardDict, setCurrentCardDict] = useState({});
   const handleContentSizeChange = (event) => {
     const { contentSize } = event.nativeEvent;
     const offsetX = (contentSize.width - event.target.clientWidth) / 2;
@@ -22,20 +19,20 @@ export function PostScreen() {
       contentOffset: { x: offsetX, y: 0 },
     });
   };
-  useEffect(() => {
-    console.log(currentCardDict);
-  }, [searchPhrase]);
-  const [test, setTest] = useState([]);
-  const updateCurrentCards = (retrievedCards) => {
-    const dataArray = Object.entries(retrievedCards).map(([key, value]) => ({ key, value }));
-    //console.log('ret cards: ', retrievedCards);
-    //console.log('data: ', dataArray);
-    //console.log('disp: ', displayCards);
-    setTest(dataArray);
-    console.log(test);
-    console.log(currentCardDict);
-    console.log(displayCards);
+  const [cardDisplayArray, setCardDisplayArray] = useState([])
+  const [cardsToPostByImage, setCardsToPostByImage] = useState({});
+  const [cardsToPostByName, setCardsToPostByName] = useState({});
+
+  const updateCurrentCards = (byName, byImage) => {
+    setCardsToPostByName(byName);
+    setCardDisplayArray(Object.entries(byImage).map(([key, value]) => ({ key, value })));
+    console.log('Cards rendered as an array (What we pass to the FlatList): ')
+    console.log(cardsToPostByImage);
+    console.log(cardDisplayArray);
+    console.log('Cards dictionary (What we save with the post info): ')
+    console.log(cardsToPostByName);
   };
+
   const pickImages = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -84,7 +81,7 @@ export function PostScreen() {
         <FlatList
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        data={test}
+        data={cardDisplayArray}
         renderItem={({ item }) => {
           return (
             <View>
@@ -110,12 +107,12 @@ export function PostScreen() {
           </View>
         </Pressable>
       </View>
-        <CardAddMenu showModal={showModal} searchPhrase={searchPhrase} setSearchPhrase={setSearchPhrase} handleContentSizeChange={handleContentSizeChange} setShowModal={setShowModal} updateCurrentCards={updateCurrentCards} displayCards={displayCards} setDisplayCards={setDisplayCards} currentCardDict={currentCardDict} setCurrentCardDict={setCurrentCardDict}/>
+        <CardAddMenu showModal={showModal} handleContentSizeChange={handleContentSizeChange} setShowModal={setShowModal} updateCurrentCards={updateCurrentCards} cardsToPostByName={cardsToPostByName} setCardsToPostByName={setCardsToPostByName} cardsToPostByImage={cardsToPostByImage} setCardsToPostByImage={setCardsToPostByImage}/>
       </View>
       <View style={{ backgroundColor: '#252525', flex: 1 }}>
         <View style= {{ flex: 2, backgroundColor: '#252525', flexDirection: "row" }}>
           <View style={{ flex: 1, backgroundColor: '#3F3F3F', borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center"}}>
-            <TextInput placeholder="presio" style={{ margin: 5 }}
+            <TextInput placeholder="Price" style={{ margin: 5 }}
               value={price}
               onChangeText={setPrice}
               multiline={true}
@@ -124,7 +121,7 @@ export function PostScreen() {
             </TextInput>
           </View>
           <View style={{ flex: 3, backgroundColor: '#3F3F3F', borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center" }}>
-            <TextInput placeholder="description" style={{ margin: 5 }}
+            <TextInput placeholder="Description" style={{ margin: 5 }}
               value={description}
               onChangeText={setDescription}
               multiline={true}

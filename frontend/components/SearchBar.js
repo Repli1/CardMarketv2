@@ -1,28 +1,31 @@
 import React from "react";
-import { StyleSheet, TextInput, View, Keyboard, Button } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 
-const SearchBar = ({ clicked, searchPhrase, setSearchPhrase, setClicked }) => {
+const SearchBar = ({ searchTerm, clicked, setSearchTerm, setClicked }) => {
   return (
-    <View style={styles.container}>
-      <View
-        style={
-          clicked ? styles.searchBar__clicked : styles.searchBar__unclicked
-        }
-      >
+    <>
+      <View style={styles.container}>
         <FontAwesome
           name="search"
           size={20}
-          color="black"
-          style={{ marginLeft: 1 }}
+          style={{
+            marginHorizontal: 10,
+            alignSelf: "center",
+            color: "rgb(12 74 110)",
+          }}
         />
         <TextInput
-          style={styles.input}
-          placeholder="Search card..."
-          value={searchPhrase}
-          onChangeText={setSearchPhrase}
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          autoCorrect={false}
+          placeholder="Search your wanted card!"
+          style={{ flex: 1 }}
           onFocus={() => {
             setClicked(true);
+          }}
+          onBlur={() => {
+            setClicked(false);
           }}
         />
         {clicked && (
@@ -30,58 +33,27 @@ const SearchBar = ({ clicked, searchPhrase, setSearchPhrase, setClicked }) => {
             name="close"
             size={20}
             color="black"
-            style={{ padding: 1 }}
+            style={{ padding: 10 }}
             onPress={() => {
-              setSearchPhrase("");
+              setSearchTerm("");
             }}
           />
         )}
       </View>
-      {clicked && (
-        <View style={{ padding: 5 }}>
-          <Button
-            title="Cancel"
-            onPress={() => {
-              Keyboard.dismiss();
-              setClicked(false);
-            }}
-            color="#00a5a7"
-          ></Button>
-        </View>
-      )}
-    </View>
+    </>
   );
 };
+
 export default SearchBar;
 
 const styles = StyleSheet.create({
   container: {
-    margin: 15,
-    justifyContent: "flex-start",
-    alignItems: "center",
+    backgroundColor: "rgb(241 245 249)",
+    height: 40,
+    borderRadius: 8,
+    marginHorizontal: 12,
     flexDirection: "row",
-    width: "100%",
-  },
-  searchBar__unclicked: {
-    padding: 10,
-    flexDirection: "row",
-    width: "93%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  searchBar__clicked: {
-    padding: 10,
-    flexDirection: "row",
-    width: "76%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "space-evenly",
-  },
-  input: {
-    fontSize: 20,
-    marginLeft: 10,
-    width: "90%",
+    marginTop: 35,
+    marginBottom: 12,
   },
 });

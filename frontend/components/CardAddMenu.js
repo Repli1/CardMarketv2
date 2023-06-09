@@ -3,35 +3,54 @@ import SearchBar from "./SearchBar.js";
 import { useState, useEffect } from "react";
 import { SingleCardManager } from "./SingleCardManager.js";
 import data from "../components/TestDB.js";
+import useDebounce from "../hooks/useDebounce";
 
-export function CardAddMenu({ showModal, setShowModal, searchPhrase, setSearchPhrase, displayCards, setDisplayCards, handleContentSizeChange, updateCurrentCards, currentCardDict, setCurrentCardDict }) {
+export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, updateCurrentCards, cardsToPostByName, setCardsToPostByName, cardsToPostByImage, setCardsToPostByImage }) {
   const [clicked, setClicked] = useState(false);
-
+  const [term, setTerm] = useState("");
+  const debouncedSearchValue = useDebounce(term, 1000);
 
   const retrieveData = (key, value) => {
-    setDisplayCards(prevDictionary => {
-      return {
-        ...prevDictionary,
-        [key.image]: value,
-      };
-    });
-  
-    setCurrentCardDict(prevDictionary => {
+    setCardsToPostByName(prevDictionary => {
       return {
         ...prevDictionary,
         [key.name]: value,
       };
     });
+    setCardsToPostByImage(prevDictionary => {
+      return {
+        ...prevDictionary,
+        [key.image]: value,
+      };
+    });
   };
-  
-  const filteredCards = data.filter((card) =>
-    card.name.toLowerCase().includes(searchPhrase.toLowerCase())
-  );
+  const renderItem = ({ item }) => {
+    let savedNumber = "0";
+    if (item.name in cardsToPostByName) {
+      savedNumber = cardsToPostByName[item.name];
+    }
+    return (
+      <SingleCardManager
+        item={item}
+        handleContentSizeChange={handleContentSizeChange}
+        savedNumber={savedNumber}
+        sendData={retrieveData}
+      />
+    );
+  }  
 
   const closing = () => {
-    updateCurrentCards(displayCards);
+    updateCurrentCards(cardsToPostByName, cardsToPostByImage);
     setShowModal(false);
   };
+  const [filteredCards, setFilteredCards] = useState([]);
+
+  useEffect(() => {
+    const filtered = data.filter((card) =>
+      card.name.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredCards(filtered);
+  }, [term]);
 
   return (
     <Modal visible={showModal} animationType="slide" transparent={true} style={styles.centeredView}>
@@ -39,20 +58,14 @@ export function CardAddMenu({ showModal, setShowModal, searchPhrase, setSearchPh
         <SearchBar
           clicked={clicked}
           setClicked={setClicked}
-          searchPhrase={searchPhrase}
-          setSearchPhrase={setSearchPhrase}
+          searchTerm={term}
+          setSearchTerm={(newTerm) => setTerm(newTerm)}
         />
         <FlatList
           showsVerticalScrollIndicator={false}
           data={filteredCards}
           contentContainerStyle={styles.container7}
-          renderItem={({ item }) => {
-          let savedNumber;
-          item.name in currentCardDict ? savedNumber = currentCardDict[item.name] : savedNumber = "0";
-          return (
-            <SingleCardManager item={item} handleContentSizeChange={handleContentSizeChange} sendData={retrieveData} savedNumber={savedNumber}/>
-            );
-          }}/>
+          renderItem={renderItem}/>
           <View style={{ borderRadius: 25, backgroundColor: '#11A88E', padding: 15, marginTop: 5, width: 150, alignItems: "center" }}>
             <Pressable onPress={closing} style={{  }}>
               <Text>
