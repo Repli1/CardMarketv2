@@ -1,8 +1,8 @@
-import { Text, View, Pressable, StyleSheet, FlatList, Image, Modal, TextInput, useWindowDimensions } from "react-native";
+import { StatusBar ,Text, View, Pressable, StyleSheet, FlatList, Image, Modal, TextInput, useWindowDimensions, Keyboard, KeyboardAvoidingView } from "react-native";
 import { CardAddMenu } from "../components/CardAddMenu.js";
 import { PostButton } from "../components/PostButton.js";
 import { SaleAuctionSlider } from "../components/SaleAuctionSlider.js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { SearchBar } from "../components/SearchBar";
 import { PrivateValueStore } from "@react-navigation/native";
 import * as ImagePicker from 'expo-image-picker';
@@ -12,6 +12,7 @@ export function PostScreen() {
   const [images, setImages] = useState();
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
+  const [isSale, setIsSale] = useState(true);
   const handleContentSizeChange = (event) => {
     const { contentSize } = event.nativeEvent;
     const offsetX = (contentSize.width - event.target.clientWidth) / 2;
@@ -20,37 +21,18 @@ export function PostScreen() {
     });
   };
   const [cardDisplayArray, setCardDisplayArray] = useState([])
-  const [cardsToPostByImage, setCardsToPostByImage] = useState({});
-  const [cardsToPostByName, setCardsToPostByName] = useState({});
+  const [cardsToPost, setCardsToPost] = useState({});
 
-  const updateCurrentCards = (byName, byImage) => {
-    // Remove entries with value 0 from cardsToPostByName
-    const updatedCardsByName = Object.fromEntries(
-      Object.entries(byName).filter(([key, value]) => value !== "0")
+  const updateCurrentCards = (cards) => {
+    const updatedCards = Object.fromEntries(
+      Object.entries(cards).filter(([key, value]) => value !== "0")
     );
-    setCardsToPostByName(updatedCardsByName);
-  
-    // Remove entries with value 0 from cardsToPostByImage and cardDisplayArray
-    const updatedCardsByImage = {};
-    const updatedCardDisplayArray = [];
-  
-    Object.entries(byImage).forEach(([key, value]) => {
-      if (value !== "0") {
-        updatedCardsByImage[key] = value;
-        updatedCardDisplayArray.push({ key, value });
-      }
-    });
-  
-    setCardsToPostByImage(updatedCardsByImage);
-    setCardDisplayArray(updatedCardDisplayArray);
-  
-    console.log('Cards rendered as an array (What we pass to the FlatList): ');
-    console.log(updatedCardsByImage);
-    console.log(updatedCardDisplayArray);
-    console.log('Cards dictionary (What we save with the post info): ');
-    console.log(updatedCardsByName);
+    setCardsToPost(updatedCards);
   };
-  
+
+  useEffect(() => {
+    setCardDisplayArray(Object.entries(cardsToPost).map(([key, value]) => ([JSON.parse(key), value])));
+  }, [cardsToPost]);
 
   const pickImages = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -61,12 +43,21 @@ export function PostScreen() {
       quality: 1
     })
     setImages(result.assets);
-    console.log(images);
   }
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+  const resetEverything = () => {
+    setPrice('');
+    setDescription('');
+    setImages();
+    setCardsToPost({});
+    setIsSale(true);
+  };
   return (
-    <View style={{ flex: 1, backgroundColor: 'purple' }}>
-      <View style={{ flexDirection: "row", flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#252525' }}>
-        <View style={styles.container}>
+    <View className="flex-1">
+      <View className="bg-sky-200 flex-1 flex-row justify-center items-center">
+        <View style={styles.container} className="bg-slate-700">
           <FlatList
           horizontal={true}
           showsHorizontalScrollIndicator={false}
@@ -86,7 +77,7 @@ export function PostScreen() {
         </View>
         <View style={styles.container2}>
           <Pressable onPress={pickImages}>
-            <View style={{ backgroundColor: "#11A88E", width: 80, height: 80, borderRadius: 90, justifyContent: "center", alignItems: "center" }}>
+            <View style={{ width: 80, height: 80, borderRadius: 90, justifyContent: "center", alignItems: "center" }} className="bg-sky-700">
               <View style={{ backgroundColor: "#DEDEDE", width: 50, height: 10, borderRadius: 90, justifyContent: "center", alignItems: "center" }}>
                 <View style={{ backgroundColor: "#DEDEDE", width: 10, height: 50, borderRadius: 90 }}>
                 </View>
@@ -95,8 +86,8 @@ export function PostScreen() {
           </Pressable>
         </View>
       </View>
-    <View style={{ flexDirection: "row", flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#252525' }}>
-      <View style={styles.container}>
+    <View className="flex-row flex-1 justify-center items-center bg-sky-200">
+      <View style={styles.container} className="bg-slate-700">
         <FlatList
         horizontal={true}
         showsHorizontalScrollIndicator={false}
@@ -105,11 +96,11 @@ export function PostScreen() {
           return (
             <View>
               <View style={styles.container3}>
-                <Image source={{ uri: item.key }} style={styles.image}/>
+                <Image source={{ uri: item[0].image }} style={styles.image}/>
               </View>
               <View style={{ alignItems: "center", justifyContent: "center"}}>
-                <Text>
-                  { item.value }
+                <Text className="text-slate-100">
+                  x{ item[1] }
                 </Text>
               </View>
             </View>
@@ -118,7 +109,7 @@ export function PostScreen() {
       </View>
       <View style={styles.container2}>
         <Pressable onPress={() => {setShowModal(true)}}>
-          <View style={{ backgroundColor: "#11A88E", width: 80, height: 80, borderRadius: 90, justifyContent: "center", alignItems: "center" }}>
+          <View style={{ width: 80, height: 80, borderRadius: 90, justifyContent: "center", alignItems: "center" }} className="bg-sky-700">
             <View style={{ backgroundColor: "#DEDEDE", width: 50, height: 10, borderRadius: 90, justifyContent: "center", alignItems: "center" }}>
               <View style={{ backgroundColor: "#DEDEDE", width: 10, height: 50, borderRadius: 90 }}>
               </View>
@@ -126,37 +117,47 @@ export function PostScreen() {
           </View>
         </Pressable>
       </View>
-        <CardAddMenu showModal={showModal} handleContentSizeChange={handleContentSizeChange} setShowModal={setShowModal} updateCurrentCards={updateCurrentCards} cardsToPostByName={cardsToPostByName} setCardsToPostByName={setCardsToPostByName} cardsToPostByImage={cardsToPostByImage} setCardsToPostByImage={setCardsToPostByImage}/>
+        <CardAddMenu showModal={showModal} handleContentSizeChange={handleContentSizeChange} setShowModal={setShowModal} updateCurrentCards={updateCurrentCards} cardsToPost={cardsToPost} setCardsToPost={setCardsToPost}/>
       </View>
-      <View style={{ backgroundColor: '#252525', flex: 1 }}>
-        <View style= {{ flex: 2, backgroundColor: '#252525', flexDirection: "row" }}>
-          <View style={{ flex: 1, backgroundColor: '#3F3F3F', borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center"}}>
-            <TextInput placeholder="Price" style={{ margin: 5 }}
+      <View className="flex-1 bg-sky-200">
+        <View style= {{ flex: 2 }} className="bg-sky-200 flex-row">
+          <View style={{ flex: 1, borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center"}} className="bg-slate-700">
+            <TextInput placeholder="Price"
               value={price}
               onChangeText={setPrice}
-              multiline={true}
+              multiline={false}
               onContentSizeChange={handleContentSizeChange}
+              keyboardType={'numeric'}
+              maxLength={7}
+              className="m-1 text-slate-100"
             >
             </TextInput>
           </View>
-          <View style={{ flex: 3, backgroundColor: '#3F3F3F', borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ flex: 3, borderRadius: 15, margin: 10, alignItems: "center", justifyContent: "center" }} className="bg-slate-700">
             <TextInput placeholder="Description" style={{ margin: 5 }}
               value={description}
               onChangeText={setDescription}
               multiline={true}
               onContentSizeChange={handleContentSizeChange}
+              maxLength={150}
+              rows={5}
             >
             </TextInput>
           </View>
+          <View style={{ borderRadius: 180, flex: 1, justifyContent: "center", height: '65%', margin: 5, marginRight: 10, alignSelf: "center"}} className="bg-sky-700">
+              <Pressable onPress={dismissKeyboard} style={{flex: 1, flexDirection: "row", justifyContent: "center"}}>
+                <Text style={{ fontSize: 10, alignSelf: "center", justifyContent: "center", textAlign: "center"}} className="text-slate-100"> Save Description</Text>
+              </Pressable>
+            </View>
         </View>
-        <View style= {{ flex: 1, backgroundColor: '#252525' }}>
-          <SaleAuctionSlider/>
+        <View className="flex-1 bg-sky-200">
+          <SaleAuctionSlider isSale={isSale} setIsSale={setIsSale}/>
         </View>
-        <View style= {{ flex: 1, backgroundColor: '#252525', justifyContent: "center", alignItems: 'center' }}>
-          <PostButton/>
+        <View className="flex-1 bg-sky-200 justify-center items-center">
+          <PostButton price={price} description={description} images={images} resetEverything={resetEverything} post={cardsToPost} postType={isSale}/>
         </View>
       </View>
-    </View>
+      </View>
   );
 }
 
@@ -164,7 +165,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flex: 4,
-    backgroundColor: '#3F3F3F',
     alignItems: 'center',
     justifyContent: 'space-evenly',
     marginLeft: '2%',
@@ -175,7 +175,6 @@ const styles = StyleSheet.create({
   container2: {
     flexDirection: 'row',
     flex: 1.5,
-    backgroundColor: '#3F3F3F',
     height: '45%',
     marginRight: '2%',
     alignItems: 'center',
@@ -196,6 +195,6 @@ const styles = StyleSheet.create({
   },
   container5: {
     alignItems: "center",
-    justifyContenr: "center",
+    justifyContent: "center",
   },
 })

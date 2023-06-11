@@ -1,31 +1,52 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { useState, useEffect } from 'react';
 
-export function SaleAuctionSlider() {
+export function SaleAuctionSlider( {isSale, setIsSale} ) {
+    const [postType, setPostType] = useState('Sale');
+    const [styleType, setStyleType] = useState(styles.sliderButtonSale);
+
+    useEffect(() => {
+        isSale === false ? setPostType('Auction') : setPostType('Sale');
+        isSale === false ? setStyleType(styles.sliderButtonAuction) : setStyleType(styles.sliderButtonSale);
+    }, [isSale]);
+
     return (
-        <View style={styles.sliderBackground}>
-            <View style={styles.sliderButton}>
-            </View>
+        <View style={{ flex: 1 }}>
+            <Pressable style={styles.sliderBackground} onPress={() => {setIsSale(!isSale)}} className="flex-1 items-center justify-center bg-slate-700">
+                <View style={styleType}>
+                    <Text className="text-slate-100">
+                        {postType}
+                    </Text>
+                </View>
+            </Pressable>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     sliderBackground: {
-        flex: 1,
-        backgroundColor: '#3F3F3F',
         borderRadius: 180,
         marginLeft: 25,
         marginRight: 25,
         marginTop: 2,
         marginBottom: 2,
-        justifyContent: "center",
-        alignItems: "center"
     },
-    sliderButton: {
+    sliderButtonAuction: {
         flex: 1,
-        backgroundColor:'#11A88E',
+        backgroundColor:'rgb(3 105 161)',
         borderRadius: 180,
         width: '50%',
-        marginLeft: '50%'
+        marginLeft: '50%',
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    sliderButtonSale: {
+        flex: 1,
+        backgroundColor:'rgb(3 105 161)',
+        borderRadius: 180,
+        width: '50%',
+        marginRight: '50%',
+        alignItems: "center",
+        justifyContent: "center"
     }
 });

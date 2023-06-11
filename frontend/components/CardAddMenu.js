@@ -2,32 +2,72 @@ import { View, FlatList, Image, Pressable, TextInput, Modal, StyleSheet, Text } 
 import SearchBar from "./SearchBar.js";
 import { useState, useEffect } from "react";
 import { SingleCardManager } from "./SingleCardManager.js";
-import data from "../components/TestDB.js";
 import useDebounce from "../hooks/useDebounce";
+import Loading from "./Loading";
+import { getCardsSearchResults } from "../api/MtgAPI";
 
-export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, updateCurrentCards, cardsToPostByName, setCardsToPostByName, cardsToPostByImage, setCardsToPostByImage }) {
+export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, updateCurrentCards, cardsToPost, setCardsToPost }) {
   const [clicked, setClicked] = useState(false);
   const [term, setTerm] = useState("");
   const debouncedSearchValue = useDebounce(term, 1000);
+  const [cardsToPostKeysAsArray, setCardsToPostKeysAsArray] = useState([]);
+  const [cards, setCards] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [cardDisplayArray, setCardDisplayArray] = useState([]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (debouncedSearchValue === "") {
+          const filteredDict = Object.fromEntries(Object.entries(cardsToPost).filter(([key, value]) => value !== "0"));
+          const keysArray = Object.keys(filteredDict);
+          const fromJson = keysArray.map(jsonString => JSON.parse(jsonString));
+          setCards(fromJson);
+          return;
+        }
+        setIsLoading(true);
+        const response = await getCardsSearchResults(debouncedSearchValue);
+        const cardsAPI = response.map((card) => ({
+          name: card.name,
+          type: card.type_line,
+          image: card.image_uris
+            ? card.image_uris.png
+            : "https://static.wikia.nocookie.net/mtgsalvation_gamepedia/images/f/f8/Magic_card_back.jpg/revision/latest?cb=20140813141013",
+          id: card.id,
+          manaCost: card.mana_cost,
+          text: card.oracle_text ? card.oracle_text : "No description",
+          set: card.set.toUpperCase(),
+        }));
+        setCards(cardsAPI);
+        // setIsLoading(false);
+      } catch (e) {
+        console.log(e);
+        setError(e.message);
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [debouncedSearchValue]);
+
+
+  useEffect(() => {
+    setCardDisplayArray(Object.entries(cardsToPost).map(([key, value]) => ([JSON.parse(key), value])));
+  }, [cardsToPost]);
 
   const retrieveData = (key, value) => {
-    setCardsToPostByName(prevDictionary => {
+    setCardsToPost(prevDictionary => {
       return {
         ...prevDictionary,
-        [key.name]: value,
-      };
-    });
-    setCardsToPostByImage(prevDictionary => {
-      return {
-        ...prevDictionary,
-        [key.image]: value,
+        [JSON.stringify(key)]: value,
       };
     });
   };
   const renderItem = ({ item }) => {
     let savedNumber = "0";
-    if (item.name in cardsToPostByName) {
-      savedNumber = cardsToPostByName[item.name];
+    if (cardsToPostKeysAsArray.some(card => card.id === item.id)) {
+      savedNumber = cardsToPost[JSON.stringify(item)];
     }
     return (
       <SingleCardManager
@@ -37,24 +77,19 @@ export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, 
         sendData={retrieveData}
       />
     );
-  }  
+  }
+  useEffect(() => {
+    setCardsToPostKeysAsArray(Object.keys(cardsToPost).map((key) => JSON.parse(key)));
+  }, [cardsToPost]);
 
   const closing = () => {
-    updateCurrentCards(cardsToPostByName, cardsToPostByImage);
+    updateCurrentCards(cardsToPost);
     setShowModal(false);
   };
-  const [filteredCards, setFilteredCards] = useState([]);
-
-  useEffect(() => {
-    const filtered = data.filter((card) =>
-      card.name.toLowerCase().includes(term.toLowerCase())
-    );
-    setFilteredCards(filtered);
-  }, [term]);
 
   return (
     <Modal visible={showModal} animationType="slide" transparent={true} style={styles.centeredView}>
-      <View style={styles.modalView}>
+      <View style={styles.modalView} className="bg-slate-800">
         <SearchBar
           clicked={clicked}
           setClicked={setClicked}
@@ -63,14 +98,14 @@ export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, 
         />
         <FlatList
           showsVerticalScrollIndicator={false}
-          data={filteredCards}
+          data={cards}
           contentContainerStyle={styles.container7}
           renderItem={renderItem}
-          keyExtractor={(item) => item.name}
+          keyExtractor={(item) => item.id}
           />
-          <View style={{ borderRadius: 25, backgroundColor: '#11A88E', padding: 15, marginTop: 5, width: 150, alignItems: "center" }}>
+          <View style={{ borderRadius: 25, padding: 15, marginTop: 5, width: 150, alignItems: "center" }} className="bg-sky-700">
             <Pressable onPress={closing} style={{  }}>
-              <Text>
+              <Text className="text-slate-100">
                 Close
               </Text>
             </Pressable>
@@ -82,7 +117,6 @@ export function CardAddMenu({ showModal, setShowModal, handleContentSizeChange, 
 
 const styles = StyleSheet.create({
   container7: {
-    backgroundColor: '#1A1A1A',
     paddingBottom: 0,
     width: 300,
   },
@@ -95,7 +129,6 @@ const styles = StyleSheet.create({
   modalView: {
     margin: 20,
     marginTop: "25%",
-    backgroundColor: '#1A1A1A',
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',

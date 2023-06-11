@@ -7,21 +7,21 @@ export function SingleCardManager({item, handleContentSizeChange, sendData, save
         sendData(item, cardNumber);
     }, [item, cardNumber]);
     return (
-        <View style={styles.container6} key={item.name}>
+        <View style={styles.container6} key={item.name} className="bg-sky-700">
             <View style={styles.container4}>
-                <View style={{ flex: 0.5, backgroundColor: 'red' }}>
+                <View style={{ flex: 1, backgroundColor: 'red' }}>
                   <Image source={{ uri: item.image }} style={styles.image2}/>
                 </View>
-                <View style={{ flex: 2, alignItems: "center", justifyContent: "center", backgroundColor: 'blue' }}>
-                  <Text style={styles.text}>{item.name}</Text>
+                <View style={{ flex: 2, alignItems: "center", justifyContent: "center" }}>
+                  <Text className="text-slate-100">{item.name}</Text>
                 </View>
                 <View style={{flex: 2, alignItems: "center", justifyContent: "center", flexDirection: "row", marginRight: 50}}>
                   <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                     <Pressable onPress={() => {setCardNumber(cardNumber === "0" ? cardNumber : String(Number(cardNumber) - 1))}}>
-                      <View style={{ width: 30, height: 30, backgroundColor: 'red', borderRadius: 180 }}></View>
+                      <View style={{ width: 0, height: 0, backgroundColor: 'transparent', borderStyle: 'solid', borderRightWidth: 20, borderTopWidth: 10, borderBottomWidth: 10, borderRightColor: 'red', borderTopColor: 'transparent', borderBottomColor: 'transparent' }}></View>
                     </Pressable>
                   </View>
-                  <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ flex: 1.2, alignItems: "center", justifyContent: "center" }}>
                     <TextInput placeholder={"0"} style={{ width: '80%', borderWidth: 1, padding: 10, fontSize: 20 }}
                     value={cardNumber}
                     onChangeText={setCardNumber}
@@ -29,12 +29,13 @@ export function SingleCardManager({item, handleContentSizeChange, sendData, save
                     onContentSizeChange={handleContentSizeChange}
                     keyboardType={"numeric"}
                     maxLength={1}
+                    className="text-slate-100"
                     >
                     </TextInput>
                   </View>
                   <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                     <Pressable onPress={() => {setCardNumber(cardNumber === "9" ? cardNumber : String(Number(cardNumber) + 1))}}>
-                      <View style={{ width: 30, height: 30, backgroundColor: 'green', borderRadius: 180 }}></View>
+                      <View style={{ width: 0, height: 0, backgroundColor: 'transparent', borderStyle: 'solid', borderLeftWidth: 20, borderTopWidth: 10, borderBottomWidth: 10, borderLeftColor: 'green', borderTopColor: 'transparent', borderBottomColor: 'transparent' }}></View>
                     </Pressable>
                   </View>
                 </View>
@@ -45,15 +46,12 @@ export function SingleCardManager({item, handleContentSizeChange, sendData, save
 
 const styles = StyleSheet.create({
     container6: {
-        backgroundColor: '#11A88E',
         marginTop: 5,
         marginBottom: 5,
       },
-      text: {
-    },
     container4: {
         flexDirection: "row",
-        paddingLeft: 1,
+        paddingLeft: 0,
         alignItems: "center",
         flex: 1,
       },

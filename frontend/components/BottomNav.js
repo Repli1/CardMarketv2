@@ -28,6 +28,7 @@ export function MyTabs() {
         },
         tabBarActiveTintColor: "#11A88E",
         tabBarInactiveTintColor: "#DEDEDE",
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: "black",
           borderTopWidth: 1,
